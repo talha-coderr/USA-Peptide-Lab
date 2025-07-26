@@ -1,0 +1,63 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "REST API",
+    "description": ""
+  },
+  "host": "localhost:3000",
+  "basePath": "/api/v1",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/testSignup": {
+      "post": {
+        "summary": "User Registration",
+        "tags": ["Email Authentication"],
+        "description": "Registers a new user and sends a confirmation email.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "User's email address"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "User's password"
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "description": "Confirm the user's password"
+                }
+              },
+              "required": [
+                "email",
+                "password",
+                "confirmPassword"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully, awaiting activation. Please check your email to activate your account."
+          },
+          "400": {
+            "description": "Invalid input or email already registered."
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+}
+}
