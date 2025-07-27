@@ -1,7 +1,6 @@
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const passport = require('passport');
-// const { sendWhatsAppMessage } = require(`${__utils}/twilio.js`);
 require(`${__utils}/passport-jwt`)
 const express = require('express'),
     app = express(),
@@ -20,17 +19,18 @@ app.set('views', path.join(__dirname, '../views'));
 app.use(express.static(path.join(__dirname, '../public')));
 
 
-
 app.use(cors({
     origin:['*'],
     credentials: true,
 }));
+
 app.use(bodyParser.json({ limit: '500mb' }));
 app.use(bodyParser.urlencoded({
     limit: '500mb',
     extended: true,
     parameterLimit: 50000
 }));
+
 app.use(cookieParser());
 app.use(session({
     secret: 'R5bj7ymny5T7nHhCfjRSrHYlbouP2pz4',

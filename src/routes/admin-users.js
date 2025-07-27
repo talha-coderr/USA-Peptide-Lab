@@ -1,6 +1,5 @@
 const { isAdmin } = require(`${__middelwares}/user`)
 const passport = require('passport');
-// const { uploadCv } = require(`${__utils}/file-uploader`)
 
 module.exports = (router, controller) => {
 

@@ -1,8 +1,6 @@
 const sendEmail = require('./sendEmail');
 const OTP = require(`${__models}/otpModel`)
 const { connectToDatabase, disconnectFromDatabase, startIdleTimer } = require(`${__config}/dbConn`)
-const User = require(`${__models}/users`);
-
 
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -20,17 +18,6 @@ const sendOTPEmail = async (email) => {
     await sendEmail({ to: email, subject, text, html });
     await OTP.create({ email, otp, createdAt: new Date() });
 };
-
-const sendSignUpEmail = async (email, userId) => {
-    const confirmationLink = `${process.env.API_BASE_URL}/api/v1/confirm/${userId}`;
-    // console.log("===========>", process.env.API_BASE_URL)
-    const subject = 'SignUp Account Confirmation';
-    const text = `You have created your account. Please confirm it by clicking the following link: ${confirmationLink}`;
-    const html = `<p>You have created your account. Please confirm it by clicking the following link: <a href="${confirmationLink}">Confirm Account</a></p>`;
-
-    await sendEmail({ to: email, subject, text, html });
-};
-
 
 
 
