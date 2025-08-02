@@ -1,85 +1,46 @@
 const Product = require(`${__models}/product`);
 const { responseHandler } = require(`${__utils}/responseHandler`)
-const fs = require("fs");
-const path = require("path");
-const PRODUCTS_FILE = path.join(__dirname, "../data/products.json");
+const { connectToDatabase, disconnectFromDatabase, startIdleTimer } = require(`${__config}/dbConn`)
 
 exports.addProduct = async (req, res) => {
     try {
-        const newProduct = req.body;
+        await connectToDatabase()
+        const productData = req.body;
 
-        if (!newProduct || !newProduct.id) {
-            return responseHandler.validationError(res, "Product data with unique 'id' is required.");
+        if (!productData || Object.keys(productData).length === 0) {
+            return responseHandler.validationError(res, "Product data is required.");
         }
 
-        const data = fs.readFileSync(PRODUCTS_FILE, "utf-8");
-        const products = JSON.parse(data);
+        const product = new Product(productData);
+        const savedProduct = await product.save();
 
-        const alreadyExists = products.find(p => p.id === newProduct.id);
-        if (alreadyExists) {
-            return responseHandler.validationError(res, "Product with this ID already exists.");
-        }
-
-        products.push(newProduct);
-
-        fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-        return responseHandler.success(res, newProduct, "Product added successfully.");
+        return responseHandler.success(res, savedProduct, "Product added successfully.");
     } catch (error) {
-        console.error(error);
-        return responseHandler.error(res, error);
-    }
-};
-
-exports.deleteProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!id) {
-            return responseHandler.validationError(res, "id is required.");
-        }
-
-        const data = fs.readFileSync(PRODUCTS_FILE, "utf-8");
-        let products = JSON.parse(data);
-
-        const productIndex = products.findIndex(p => p.id === id);
-        if (productIndex === -1) {
-            return responseHandler.notFound(res, "Product not found.");
-        }
-
-        const deletedProduct = products.splice(productIndex, 1)[0];
-
-        fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
-        return responseHandler.success(res, deletedProduct, "Product deleted successfully.");
-    } catch (error) {
-        console.error(error);
-        return responseHandler.error(res, error);
+        console.error("Error adding product:", error);
+        return responseHandler.error(res, error.message);
     }
 };
 
 exports.getAllProducts = async (req, res) => {
     try {
-        const data = fs.readFileSync(PRODUCTS_FILE, "utf-8");
-        const products = JSON.parse(data);
+        await connectToDatabase();
 
-        return responseHandler.success(res, products, "Product list retrieved successfully.");
+        const products = await Product.find({}, 'name productImage price');
+
+        return responseHandler.success(res, products, "Products retrieved successfully.");
     } catch (error) {
-        console.error(error);
-        return responseHandler.error(res, error);
+        console.error("Error retrieving products:", error);
+        return responseHandler.error(res, error.message);
     }
 };
 
 exports.getProductById = async (req, res) => {
     try {
-        const { id } = req.params;
+        await connectToDatabase();
 
-        if (!id) {
-            return responseHandler.validationError(res, "id is required.");
-        }
-
-        const data = fs.readFileSync(PRODUCTS_FILE, "utf-8");
-        const products = JSON.parse(data);
-
-        const product = products.find(p => p.id === id);
+        const productId = req.params.id;
+        
+        const product = await Product.findById(productId);
 
         if (!product) {
             return responseHandler.notFound(res, "Product not found.");
@@ -87,7 +48,7 @@ exports.getProductById = async (req, res) => {
 
         return responseHandler.success(res, product, "Product retrieved successfully.");
     } catch (error) {
-        console.error(error);
-        return responseHandler.error(res, error);
+        console.error("Error retrieving product:", error);
+        return responseHandler.error(res, error.message);
     }
 };

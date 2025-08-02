@@ -11,9 +11,10 @@ module.exports = (router, controller) => {
     router.post('/helloWorld', controller.helloWorld);
     router.post('/registerUser', controller.registerUser);
     router.post('/login', controller.login);
-    router.get('/getAllUsers', controller.getAllUsers);
-    router.put('/updateUser/:id', controller.updateUser);
-    router.delete('/deleteUser/:id', controller.deleteUser);
+    router.post('/logout', controller.logout);
+    router.get('/getAllUsers', isAdmin, controller.getAllUsers);
+    router.put('/updateUser/:id', isAdmin, controller.updateUser);
+    router.delete('/deleteUser/:id', isAdmin, controller.deleteUser);
     router.get('/getUserById/:id', controller.getUserById);
 }
 

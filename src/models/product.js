@@ -1,37 +1,32 @@
 const mongoose = require("mongoose");
 
-const priceSpecSchema = new mongoose.Schema({
-    Quantity: String,
-    Discount: String,
-    Price: String
-}, { _id: false });
+const discountSchema = new mongoose.Schema({
+    minQuantity: { type: Number, required: true },
+    maxQuantity: { type: Number, default: null },
+    discountPercent: { type: Number, required: true },
+});
 
-const descriptionBlockSchema = new mongoose.Schema({
-    h2: String,
-    h3: String,
-    p: String,
-    references: [String]
-}, { _id: false });
-
-const relatedProductSchema = new mongoose.Schema({
-    url: String,
-    name: String,
-    image: String,
-    price: String
-}, { _id: false });
+const tabSchema = new mongoose.Schema({
+    title: { type: String },
+    content: { type: String },
+    image: { type: String },
+});
 
 const productSchema = new mongoose.Schema({
-    url: String,
-    name: String,
-    primary_image: String,
-    display_price: String,
-    display_specs: [String],
-    price_specs: [priceSpecSchema],
-    description: [descriptionBlockSchema],
-    certificate_of_analysis: String,
-    high_performance_liquid_chromatography: String,
-    mass_spectrometry: String,
-    related_products: [relatedProductSchema]
+    name: { type: String, required: true },
+    productImage: { type: String },
+    price: { type: Number, required: true },
+    size: { type: String },
+    contents: { type: String },
+    form: { type: String },
+    purity: { type: String },
+    sku: { type: String },
+    description: { type: String },
+    freeShippingOn: { type: Number },
+    discounts: [discountSchema],
+    tabs: [tabSchema],
+    isDeleted: { type: Boolean, default: false },
+    relatedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model("Product", productSchema);
