@@ -1,25 +1,33 @@
-const mongoose = require("mongoose"),
-  Schema = mongoose.Schema,
-  { isEmail } = require("validator");
+const mongoose = require("mongoose");
+const { isEmail } = require("validator");
+const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
+  fullName: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   email: {
     type: String,
-    validate: [isEmail, "invalid email"],
-    unique: true,
+    validate: [isEmail, "Invalid email"],
     required: true,
+    unique: true,
   },
   password: {
     type: String,
     required: true,
   },
-  role: {
-    type: String,
-    required: true,
-    default: "Student",
+  refreshToken: {
+    type: String
   },
-  name: {
-    type: String,
+  isDeleted: {
+    type: Boolean,
+    default: false,
   },
 });
 
