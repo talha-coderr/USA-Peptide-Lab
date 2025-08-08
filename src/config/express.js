@@ -15,6 +15,10 @@ const swaggerDocument = require('../../swagger.json');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
 
+app.get("/", (req, res) => {
+    res.send("API is running")
+})
+
 // Serve static files like CSS, images, etc.
 app.use(express.static(path.join(__dirname, '../public')));
 
