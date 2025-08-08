@@ -5,6 +5,6 @@ module.exports = (router, controller) => {
 
     router.use(passport.initialize());
 
-    router.post('/helloWorld', isAdmin, controller.helloWorld);
+    router.get('/helloWorld', isAdmin, controller.helloWorld);
 
 }

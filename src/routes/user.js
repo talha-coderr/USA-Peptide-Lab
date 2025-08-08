@@ -8,7 +8,7 @@ module.exports = (router, controller) => {
 
     router.use(passport.initialize());
 
-    router.post('/helloWorld', controller.helloWorld);
+    router.get('/helloWorld', controller.helloWorld);
     router.post('/registerUser', controller.registerUser);
     router.post('/login', controller.login);
     router.post('/logout', controller.logout);
