@@ -95,6 +95,47 @@ exports.completeSignup = async (req, res) => {
     }
 };
 
+exports.accountDetails = async (req, res) => {
+    try {
+        await connectToDatabase();
+
+        const { firstName, lastName, displayName, email, password } = req.body;
+
+        if (!firstName || !lastName || !displayName || !email) {
+            return responseHandler.validationError(res, "Please filout the required fields.");
+        }
+
+        const existingUser = await User.findOne({ email: email, isDeleted: false });
+        if (existingUser) {
+            return responseHandler.validationError(res, "Email already Registered. Please login your account");
+        }
+
+        const existingUsername = await User.findOne({ username: displayName, isDeleted: false });
+        if (existingUsername) {
+            return responseHandler.validationError(res, "Username already exists. Please choose a different one.");
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = new User({
+            fullName,
+            username: displayName,
+            email,
+            password: hashedPassword,
+        });
+
+        const savedUser = await user.save();
+
+        return responseHandler.success(res, savedUser, "Account details updated successfully");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
+    }
+};
+
 exports.login = async (req, res) => {
     try {
         await connectToDatabase();
