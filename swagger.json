@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:3000",
+  "host": "localhost:5000",
   "basePath": "/api/v1",
   "schemes": [
     "http"
@@ -105,13 +105,58 @@
         }
       }
     },
-    "/accountDetails": {
+    "/login": {
       "post": {
-        "summary": "Create Account with Details",
+        "summary": "User Login",
         "tags": [
-          "User Management"
+          "Authentication"
         ],
-        "description": "Update user account details with full name, display name, email, and password after validating uniqueness of email and display name.",
+        "description": "Authenticates the user by verifying the provided email and password, then generates access and refresh tokens.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "User's registered email address"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "User's password"
+                }
+              },
+              "required": [
+                "email",
+                "password"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged in successfully, tokens generated."
+          },
+          "400": {
+            "description": "Invalid email or incorrect password."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/accountDetails": {
+      "put": {
+        "summary": "Update Account Details",
+        "tags": [
+          "User Account"
+        ],
+        "description": "Updates the user's account details such as first name, last name, display name, and optionally changes the password if provided.",
         "parameters": [
           {
             "name": "body",
@@ -122,42 +167,43 @@
               "properties": {
                 "firstName": {
                   "type": "string",
-                  "description": "The user's first name"
+                  "description": "User's first name"
                 },
                 "lastName": {
                   "type": "string",
-                  "description": "The user's last name"
+                  "description": "User's last name"
                 },
                 "displayName": {
                   "type": "string",
-                  "description": "The username/display name for login"
+                  "description": "User's display name (must be unique)"
                 },
-                "email": {
+                "currentPassword": {
                   "type": "string",
-                  "format": "email",
-                  "description": "The user's email address"
+                  "description": "Current password (required if changing password)"
                 },
-                "password": {
+                "newPassword": {
                   "type": "string",
-                  "description": "The password for the account"
+                  "description": "New password (required if changing password)"
+                },
+                "confirmNewPassword": {
+                  "type": "string",
+                  "description": "Confirm new password (required if changing password)"
                 }
               },
               "required": [
                 "firstName",
                 "lastName",
-                "displayName",
-                "email",
-                "password"
+                "displayName"
               ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Account created successfully."
+            "description": "Account details updated successfully."
           },
           "400": {
-            "description": "Validation error (missing fields, email already registered, or username already taken)."
+            "description": "Validation error, such as missing fields or incorrect password."
           },
           "500": {
             "description": "Server error."

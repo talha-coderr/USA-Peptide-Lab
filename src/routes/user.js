@@ -11,7 +11,7 @@ module.exports = (router, controller) => {
     router.get('/helloWorld', controller.helloWorld);
     router.post('/sendSignupLink', controller.sendSignupLink);
     router.post('/completeSignup/:token/:email', controller.completeSignup);
-    router.post('/accountDetails', controller.accountDetails);
+    router.put('/accountDetails', controller.accountDetails);
     router.post('/login', controller.login);
     router.post('/logout', controller.logout);
     router.get('/getAllUsers', isAdmin, controller.getAllUsers);
