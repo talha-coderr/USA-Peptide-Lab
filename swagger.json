@@ -11,11 +11,13 @@
     "http"
   ],
   "paths": {
-    "/testSignup": {
+    "/sendSignupLink": {
       "post": {
-        "summary": "User Registration",
-        "tags": ["Email Authentication"],
-        "description": "Registers a new user and sends a confirmation email.",
+        "summary": "Send Signup Link",
+        "tags": [
+          "User Authentication"
+        ],
+        "description": "Generates a signup token and sends a registration link to the user's email. The link allows the user to complete their registration by setting a password.",
         "parameters": [
           {
             "name": "body",
@@ -27,34 +29,138 @@
                 "email": {
                   "type": "string",
                   "format": "email",
-                  "description": "User's email address"
-                },
-                "password": {
-                  "type": "string",
-                  "description": "User's password"
-                },
-                "confirmPassword": {
-                  "type": "string",
-                  "description": "Confirm the user's password"
+                  "description": "The email address of the user to register"
                 }
               },
               "required": [
-                "email",
-                "password",
-                "confirmPassword"
+                "email"
               ]
             }
           }
         ],
         "responses": {
-          "201": {
-            "description": "User registered successfully, awaiting activation. Please check your email to activate your account."
+          "200": {
+            "description": "Signup link sent to the provided email."
           },
           "400": {
-            "description": "Invalid input or email already registered."
+            "description": "Email already registered."
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/completeSignup/{token}/{email}": {
+      "post": {
+        "summary": "Complete Signup",
+        "tags": [
+          "User Authentication"
+        ],
+        "description": "Completes the user registration by verifying the signup token, setting the password, and creating the account.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The unique signup token sent to the user's email"
+          },
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "email",
+            "description": "The email address associated with the signup token"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "description": "The password the user wants to set"
+                }
+              },
+              "required": [
+                "password"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signup completed successfully."
+          },
+          "400": {
+            "description": "Invalid or expired token."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/accountDetails": {
+      "post": {
+        "summary": "Create Account with Details",
+        "tags": [
+          "User Management"
+        ],
+        "description": "Update user account details with full name, display name, email, and password after validating uniqueness of email and display name.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "firstName": {
+                  "type": "string",
+                  "description": "The user's first name"
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "The user's last name"
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "The username/display name for login"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "The user's email address"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "The password for the account"
+                }
+              },
+              "required": [
+                "firstName",
+                "lastName",
+                "displayName",
+                "email",
+                "password"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account created successfully."
+          },
+          "400": {
+            "description": "Validation error (missing fields, email already registered, or username already taken)."
+          },
+          "500": {
+            "description": "Server error."
           }
         }
       }
