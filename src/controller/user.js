@@ -3,6 +3,9 @@ const { responseHandler } = require(`${__utils}/responseHandler`);
 const { connectToDatabase, disconnectFromDatabase, startIdleTimer } = require(`${__config}/dbConn`)
 const bcrypt = require('bcrypt');
 const { generateTokens, verifyToken, tokenPayload } = require(`${__utils}/helper.js`)
+const { sendSignUpLinkEmail } = require(`${__utils}/sendEmailTemp.js`)
+const crypto = require("crypto");
+const SignupToken = require(`${__models}/signupTokenModel`);
 
 exports.helloWorld = async (req, res) => {
     try {
@@ -12,43 +15,80 @@ exports.helloWorld = async (req, res) => {
         console.log(error)
         return responseHandler.error(res, error);
     }
-}
+};
 
-exports.registerUser = async (req, res) => {
+exports.sendSignupLink = async (req, res) => {
     try {
+        const { email } = req.body;
+
         await connectToDatabase();
 
-        const { firstName, lastName, displayName, email, password } = req.body;
-
-        if (!firstName || !lastName || !displayName || !email || !password) {
-            return responseHandler.validationError(res, "All fields are required.");
-        }
-
-        const existingUser = await User.findOne({ email: email, isDeleted: false });
+        // Check if already registered
+        const existingUser = await User.findOne({ email: email.toLowerCase(), isDeleted: false });
         if (existingUser) {
-            return responseHandler.validationError(res, "Email already Registered. Please login your account");
+            return responseHandler.validationError(res, "Email already registered. Please log in.");
         }
 
-        const existingUsername = await User.findOne({ username: displayName, isDeleted: false });
-        if (existingUsername) {
-            return responseHandler.validationError(res, "Username already exists. Please choose a different one.");
+        // Generate token
+        const token = crypto.randomBytes(32).toString("hex");
+
+        // Save token in DB with expiry
+        await SignupToken.deleteMany({ email }); // Remove old tokens
+        await SignupToken.create({
+            email,
+            token,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+        });
+
+        // Signup link
+        const signupLink = `http://localhost:3000/api/v1/completeSignup/${token}/${email}`;
+
+        await sendSignUpLinkEmail(email, signupLink)
+
+        return responseHandler.success(res, null, "Signup link sent to your email. Please use the link to set your password and complete your registration.");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
+    }
+};
+
+exports.completeSignup = async (req, res) => {
+    try {
+        const { email, token } = req.params;
+        const { password } = req.body;
+
+        await connectToDatabase();
+
+        // Find token in DB
+        const tokenData = await SignupToken.findOne({ email, token });
+        if (!tokenData) {
+            return responseHandler.validationError(res, "Invalid or expired token.");
         }
 
+        // Check expiry
+        if (new Date() > tokenData.expiresAt) {
+            await SignupToken.deleteOne({ _id: tokenData._id });
+            return responseHandler.validationError(res, "Token expired. Please request a new signup link.");
+        }
+
+        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const fullName = `${firstName} ${lastName}`;
-
+        // Create user
         const user = new User({
-            fullName,
-            username: displayName,
+            fullName: "",
+            username: email.split("@")[0],
             email,
             password: hashedPassword,
+            isDeleted: false
         });
-
         const savedUser = await user.save();
 
-        return responseHandler.success(res, savedUser, "User registered successfully.");
+        // Delete token after signup
+        await SignupToken.deleteOne({ _id: tokenData._id });
+
+        return responseHandler.success(res, savedUser, "Signup completed successfully.");
     } catch (error) {
         console.error(error);
         return responseHandler.error(res, error);

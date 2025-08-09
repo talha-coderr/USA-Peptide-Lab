@@ -9,7 +9,8 @@ module.exports = (router, controller) => {
     router.use(passport.initialize());
 
     router.get('/helloWorld', controller.helloWorld);
-    router.post('/registerUser', controller.registerUser);
+    router.post('/sendSignupLink', controller.sendSignupLink);
+    router.post('/completeSignup/:token/:email', controller.completeSignup);
     router.post('/login', controller.login);
     router.post('/logout', controller.logout);
     router.get('/getAllUsers', isAdmin, controller.getAllUsers);
