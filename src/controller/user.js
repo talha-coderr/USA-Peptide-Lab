@@ -41,7 +41,7 @@ exports.sendSignupLink = async (req, res) => {
         });
 
         // Signup link
-        const signupLink = `http://localhost:3000/api/v1/completeSignup/${token}/${email}`;
+        const signupLink = `http://localhost:5000/api/v1/completeSignup/${token}/${email}`;
 
         await sendSignUpLinkEmail(email, signupLink)
 
@@ -99,42 +99,69 @@ exports.accountDetails = async (req, res) => {
     try {
         await connectToDatabase();
 
-        const { firstName, lastName, displayName, email, password } = req.body;
+        const userId = req.user._id;
+        const { firstName, lastName, displayName, currentPassword, newPassword, confirmNewPassword } = req.body;
 
-        if (!firstName || !lastName || !displayName || !email) {
-            return responseHandler.validationError(res, "Please filout the required fields.");
+        // Check name fields
+        if (!firstName || !lastName) {
+            return responseHandler.validationError(res, "First and last name are required.");
         }
 
-        const existingUser = await User.findOne({ email: email, isDeleted: false });
-        if (existingUser) {
-            return responseHandler.validationError(res, "Email already Registered. Please login your account");
+        // Check display name
+        if (!displayName) {
+            return responseHandler.validationError(res, "Display name is required.");
         }
-
-        const existingUsername = await User.findOne({ username: displayName, isDeleted: false });
-        if (existingUsername) {
-            return responseHandler.validationError(res, "Username already exists. Please choose a different one.");
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = new User({
-            fullName,
+        const existingUsername = await User.findOne({
             username: displayName,
-            email,
-            password: hashedPassword,
+            _id: { $ne: userId }, // Ignore the current user's own username
+            isDeleted: false
         });
+        if (existingUsername) {
+            return responseHandler.validationError(res, "Display name already exists. Please choose a different one.");
+        }
 
-        const savedUser = await user.save();
+        // Password change validations
+        const passwordFields = [currentPassword, newPassword, confirmNewPassword];
+        const anyPasswordProvided = passwordFields.some(field => field && field.trim() !== "");
+        const allPasswordProvided = passwordFields.every(field => field && field.trim() !== "");
 
-        return responseHandler.success(res, savedUser, "Account details updated successfully");
+        if (anyPasswordProvided && !allPasswordProvided) {
+            return responseHandler.validationError(res, "Please fill out all password fields.");
+        }
+
+        let updatedData = {
+            fullName: `${firstName} ${lastName}`,
+            username: displayName,
+        };
+
+        if (allPasswordProvided) {
+            // Verify current password
+            const user = await User.findById(userId);
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isMatch) {
+                return responseHandler.validationError(res, "Current password is incorrect.");
+            }
+
+            // Match new password & confirm password
+            if (newPassword !== confirmNewPassword) {
+                return responseHandler.validationError(res, "New password and confirm password do not match.");
+            }
+
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            updatedData.password = await bcrypt.hash(newPassword, salt);
+        }
+
+        // Update the user
+        const updatedUser = await User.findByIdAndUpdate(userId, updatedData, { new: true });
+
+        return responseHandler.success(res, updatedUser, "Account details updated successfully.");
     } catch (error) {
         console.error(error);
         return responseHandler.error(res, error);
     }
 };
+
 
 exports.login = async (req, res) => {
     try {

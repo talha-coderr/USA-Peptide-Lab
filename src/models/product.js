@@ -7,26 +7,23 @@ const discountSchema = new mongoose.Schema({
 });
 
 const tabSchema = new mongoose.Schema({
-    title: { type: String },
-    content: { type: String },
-    image: { type: String },
+    title: { type: String, required: true },
+    content: { type: String, required: true },
 });
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    productImage: { type: String },
+    productImage: { type: String, required: true },
     price: { type: Number, required: true },
     size: { type: String },
     contents: { type: String },
     form: { type: String },
     purity: { type: String },
     sku: { type: String },
-    description: { type: String },
     freeShippingOn: { type: Number },
     discounts: [discountSchema],
     tabs: [tabSchema],
     isDeleted: { type: Boolean, default: false },
-    relatedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model("Product", productSchema);

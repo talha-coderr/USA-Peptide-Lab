@@ -24,7 +24,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 app.use(cors({
-    origin:['*'],
+    // origin: 'http://localhost:3000',
+    origin: ['https://usa-peptides.vercel.app', 'http://localhost:3000'],
     credentials: true,
 }));
 
