@@ -41,7 +41,7 @@ exports.sendSignupLink = async (req, res) => {
         });
 
         // Signup link
-        const signupLink = `http://localhost:5000/api/v1/completeSignup/${token}/${email}`;
+        const signupLink = `https://usa-peptides.vercel.app/complete-signup${token}/${email}`;
 
         await sendSignUpLinkEmail(email, signupLink)
 
