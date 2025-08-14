@@ -210,6 +210,156 @@
           }
         }
       }
+    },
+    "/addProduct": {
+      "post": {
+        "summary": "Create Product",
+        "tags": [
+          "Products"
+        ],
+        "description": "Creates a new product with details and an image upload.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "description": "Product name"
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "required": true,
+            "type": "number",
+            "description": "Product price"
+          },
+          {
+            "name": "size",
+            "in": "formData",
+            "type": "string",
+            "description": "Product size"
+          },
+          {
+            "name": "contents",
+            "in": "formData",
+            "type": "string",
+            "description": "Product contents"
+          },
+          {
+            "name": "form",
+            "in": "formData",
+            "type": "string",
+            "description": "Product form (e.g., powder, liquid)"
+          },
+          {
+            "name": "purity",
+            "in": "formData",
+            "type": "string",
+            "description": "Product purity percentage"
+          },
+          {
+            "name": "sku",
+            "in": "formData",
+            "type": "string",
+            "description": "Stock Keeping Unit"
+          },
+          {
+            "name": "freeShippingOn",
+            "in": "formData",
+            "type": "number",
+            "description": "Free shipping threshold amount"
+          },
+          {
+            "name": "discounts",
+            "in": "formData",
+            "type": "string",
+            "description": "JSON array of discounts [{ minQuantity, maxQuantity, discountPercent }]"
+          },
+          {
+            "name": "tabs",
+            "in": "formData",
+            "type": "string",
+            "description": "JSON array of product tabs [{ title, content, image }]"
+          },
+          {
+            "name": "productImage",
+            "in": "formData",
+            "required": true,
+            "type": "file",
+            "description": "Product image"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product created successfully."
+          },
+          "400": {
+            "description": "Validation error, such as missing product name, price, or image."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/updateProduct/{id}": {
+      "put": {
+        "summary": "Update Product",
+        "tags": [
+          "Products"
+        ],
+        "description": "Updates an existing product's details and optionally replaces its image.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The unique ID of the product to update"
+          },
+          {
+            "name": "name",
+            "in": "formData",
+            "type": "string",
+            "description": "Updated product name"
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "type": "number",
+            "description": "Updated product price"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "type": "string",
+            "description": "Updated product description"
+          },
+          {
+            "name": "productImage",
+            "in": "formData",
+            "type": "file",
+            "description": "New product image (optional)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product updated successfully."
+          },
+          "404": {
+            "description": "Product not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
     }
 }
 }

@@ -1,6 +1,8 @@
 const Product = require(`${__models}/product`);
 const { responseHandler } = require(`${__utils}/responseHandler`)
 const { connectToDatabase, disconnectFromDatabase, startIdleTimer } = require(`${__config}/dbConn`)
+const fs = require("fs");
+const path = require("path");
 
 exports.createProduct = async (req, res) => {
     try {
@@ -47,10 +49,6 @@ exports.createProduct = async (req, res) => {
         return responseHandler.error(res, error);
     }
 };
-
-// controllers/productController.js
-const fs = require("fs");
-const path = require("path");
 
 exports.updateProduct = async (req, res) => {
     try {
