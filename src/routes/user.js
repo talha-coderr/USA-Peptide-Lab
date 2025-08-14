@@ -13,10 +13,10 @@ module.exports = (router, controller) => {
     router.post('/completeSignup/:token/:email', controller.completeSignup);
     router.put('/accountDetails', controller.accountDetails);
     router.post('/login', controller.login);
-    router.post('/logout', controller.logout);
-    router.get('/getAllUsers', isAdmin, controller.getAllUsers);
-    router.put('/updateUser/:id', isAdmin, controller.updateUser);
-    router.delete('/deleteUser/:id', isAdmin, controller.deleteUser);
-    router.get('/getUserById/:id', controller.getUserById);
+    router.post('/logout', passport.authenticate("jwt", { session: false }), controller.logout);
+    // router.get('/getAllUsers', isAdmin, controller.getAllUsers);
+    // router.put('/updateUser/:id', isAdmin, controller.updateUser);
+    // router.delete('/deleteUser/:id', isAdmin, controller.deleteUser);
+    // router.get('/getUserById/:id', controller.getUserById);
 }
 

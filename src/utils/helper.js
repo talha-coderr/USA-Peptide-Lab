@@ -2,30 +2,32 @@ const jwt = require('jsonwebtoken');
 
 const generateTokens = async (payload, res, user) => {
     // Sign the token with the payload, secret, and expiration time from environment variables
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_TOKEN_EXP });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_TOKEN_EXP
+    });
     // Refresh token
     const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
-        expiresIn: process.env.REFRESH_TOKEN_EXP // Longer expiry for refresh tokens (e.g., 7 days)
+        expiresIn: process.env.REFRESH_TOKEN_EXP
     });
     // Store the refresh token in the user's database record (if applicable)
     user.refreshToken = refreshToken;
     await user.save();
 
+    const isProd = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'stagging';
+
     // Set cookies for access and refresh tokens
     res.cookie('jwt', accessToken, {
-        httpOnly: process.env.NODE_ENV == 'production' || 'stagging'  ? false : true, // Prevent client-side access to the cookie
-        secure: process.env.NODE_ENV == 'production' || 'stagging'    ?  true : false, // Use `secure` in production (HTTPS)
-        sameSite:process.env.NODE_ENV == 'production' || 'stagging'    ? 'None' : 'Lax', // Mitigate CSRF
-        maxAge:  90 * 60 * 1000, // 15 minutes
-        path:"/"
+        httpOnly: true, // ✅ JS se access nahi
+        secure: isProd, // ✅ Prod me HTTPS required
+        sameSite: isProd ? 'none' : 'lax', // ✅ Cross-site cookie ke liye none
+        maxAge: 2 * 60 * 60 * 1000 // 2 hours
     });
 
     res.cookie('refreshToken', refreshToken, {
-        httpOnly: process.env.NODE_ENV ==  'production' || 'stagging'   ? false : true, // Prevent client-side access to the cookie
-        secure: process.env.NODE_ENV == 'production' || 'stagging'   ? true : false, // Use `secure` in production (HTTPS)
-        sameSite:process.env.NODE_ENV == 'production' || 'stagging'   ? 'None' : 'Lax', // Mitigate CSRF
-        maxAge: 90 * 60 * 1000, // 7 days
-        path:"/"
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
     });
     return { accessToken, refreshToken };
 
@@ -34,16 +36,14 @@ const generateTokens = async (payload, res, user) => {
 const verifyToken = async (refreshToken) => {
     return jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 }
-
-const tokenPayload = async(user)=>{
-    console.log(user,'usee')
+const tokenPayload = async (user) => {
+    console.log("Token Payload User===>", user)
     return {
         id:user?._id,
         email:user?.email,
         role:user?.role,
         name:user?.fullName,
-        gender:user?.gender,
     }
 }
 
-module.exports = { generateTokens, verifyToken, tokenPayload }
+module.exports = { generateTokens, verifyToken, tokenPayload };
