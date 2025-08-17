@@ -21,10 +21,12 @@ app.get("/", (req, res) => {
 
 // Serve static files like CSS, images, etc.
 app.use(express.static(path.join(__dirname, "../public")));
-
-app.use(cors({
+const uploadDir = path.join(__root, "public/uploads");
+app.use("/uploads", express.static(uploadDir));
+app.use(
+  cors({
     // origin: 'http://localhost:3000',
-    origin: ['http://localhost:3000', 'https://usa-peptides.vercel.app'],
+    origin: ["http://localhost:3000", "https://usa-peptides.vercel.app"],
     credentials: true,
   })
 );

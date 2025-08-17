@@ -1,17 +1,30 @@
 const mongoose = require("mongoose");
 
 const discountSchema = new mongoose.Schema({
-    minQuantity: { type: Number, required: true },
-    maxQuantity: { type: Number, default: null },
-    discountPercent: { type: Number, required: true },
+  minQuantity: { type: Number, required: true },
+  maxQuantity: { type: Number, default: null },
+  discountPercent: { type: Number, required: true },
 });
 
-const tabSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    content: { type: String, required: true },
+const descriptionSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+  text: { type: String, required: true },
 });
 
-const productSchema = new mongoose.Schema({
+const fileSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+  url: { type: String, required: true },
+});
+
+const tabsSchema = new mongoose.Schema({
+  description: [descriptionSchema],
+  certificate: [fileSchema],
+  hplc: [fileSchema],
+  mass: [fileSchema],
+});
+
+const productSchema = new mongoose.Schema(
+  {
     name: { type: String, required: true },
     productImage: { type: String, required: true },
     price: { type: Number, required: true },
@@ -22,8 +35,10 @@ const productSchema = new mongoose.Schema({
     sku: { type: String },
     freeShippingOn: { type: Number },
     discounts: [discountSchema],
-    tabs: [tabSchema],
+    tabs: tabsSchema, // <-- document with array fields inside
     isDeleted: { type: Boolean, default: false },
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Product", productSchema);
