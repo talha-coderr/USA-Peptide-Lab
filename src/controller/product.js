@@ -84,6 +84,7 @@ exports.createProduct = async (req, res) => {
       form,
       purity,
       sku,
+      stock,
       freeShippingOn,
       discounts,
       description,
@@ -150,6 +151,7 @@ exports.createProduct = async (req, res) => {
       form,
       purity,
       sku,
+      stock,
       freeShippingOn,
       discounts: parsedDiscounts,
       tabs,
@@ -171,7 +173,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, description } = req.body;
+    const { name, price, description, stock } = req.body;
 
     // Product find karo
     let product = await Product.findById(id);
@@ -200,6 +202,7 @@ exports.updateProduct = async (req, res) => {
     if (name) product.name = name;
     if (price) product.price = price;
     if (description) product.description = description;
+    if (stock) product.stock = stock;
 
     await product.save();
 
@@ -271,6 +274,67 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete product",
+      error: error.message,
+    });
+  }
+};
+exports.getProductSummary = async (req, res) => {
+  try {
+    const products = await Product.find({}, "name price size stock discounts") // only select required fields
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch product summary",
+      error: error.message,
+    });
+  }
+};
+
+exports.updatePriceAndStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price, stock } = req.body;
+    if (price == null && stock == null) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide price or stock to update",
+      });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          ...(price != null && { price }),
+          ...(stock != null && { stock }),
+        },
+      },
+      { new: true, runValidators: true }
+    ).select("name price size stock discounts");
+
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update product",
       error: error.message,
     });
   }

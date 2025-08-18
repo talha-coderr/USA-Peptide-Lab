@@ -33,6 +33,7 @@ const productSchema = new mongoose.Schema(
     form: { type: String },
     purity: { type: String },
     sku: { type: String },
+    stock: { type: Number },
     freeShippingOn: { type: Number },
     discounts: [discountSchema],
     tabs: tabsSchema, // <-- document with array fields inside
