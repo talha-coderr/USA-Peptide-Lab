@@ -1,76 +1,6 @@
 const Product = require(`${__models}/product`);
 const { responseHandler } = require(`${__utils}/responseHandler`);
-const {
-  connectToDatabase,
-  disconnectFromDatabase,
-  startIdleTimer,
-} = require(`${__config}/dbConn`);
-const fs = require("fs");
-const path = require("path");
-
-// exports.createProduct = async (req, res) => {
-//   try {
-//     await connectToDatabase();
-
-//     const {
-//       name,
-//       price,
-//       size,
-//       contents,
-//       form,
-//       purity,
-//       sku,
-//       freeShippingOn,
-//       discounts,
-//       tabs,
-//     } = req.body;
-
-//     if (!name || !price) {
-//       return responseHandler.validationError(
-//         res,
-//         "Product name and price are required"
-//       );
-//     }
-
-//     if (!req.file) {
-//       return responseHandler.validationError(res, "Product image is required");
-//     }
-
-//     let parsedDiscounts = [];
-//     let parsedTabs = [];
-
-//     if (discounts) {
-//       parsedDiscounts = JSON.parse(discounts);
-//     }
-
-//     if (tabs) {
-//       parsedTabs = JSON.parse(tabs);
-//     }
-
-//     const product = await Product.create({
-//       name,
-//       productImage: req.file.filename,
-//       price,
-//       size,
-//       contents,
-//       form,
-//       purity,
-//       sku,
-//       freeShippingOn,
-//       discounts: parsedDiscounts,
-//       tabs: parsedTabs,
-//     });
-
-//     return responseHandler.success(
-//       res,
-//       product,
-//       "Product created successfully"
-//     );
-//   } catch (error) {
-//     console.error(error);
-//     return responseHandler.error(res, error);
-//   }
-// };
+const { connectToDatabase, disconnectFromDatabase, startIdleTimer } = require(`${__config}/dbConn`);
 
 exports.createProduct = async (req, res) => {
   try {
@@ -171,113 +101,147 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, price, description, stock } = req.body;
+    try {
+        await connectToDatabase();
+        await connectToDatabase();
 
-    // Product find karo
-    let product = await Product.findById(id);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
-    }
+        const { id } = req.params;
 
-    // Agar new image upload hui hai to purani delete karo
-    if (req.file) {
-      if (product.image) {
-        const oldImagePath = path.join(
-          __dirname,
-          "../uploads/products",
-          product.image
-        );
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+        let product = await Product.findById(id);
+        if (!product || product.isDeleted) {
+            return responseHandler.validationError(res, "Product not found");
         }
-      }
-      product.image = req.file.filename;
+
+        const { name, price, size, contents, form, purity, sku, stock, freeShippingOn, discounts, description, } = req.body;
+
+        // Parse discounts if provided
+        let parsedDiscounts = product.discounts;
+        if (discounts) {
+            try {
+                parsedDiscounts = JSON.parse(discounts).map((discount) => ({
+                    minQuantity: parseInt(discount.minQuantity),
+                    maxQuantity: parseInt(discount.maxQuantity),
+                    discountPercent: parseFloat(discount.discountPercent),
+                }));
+            } catch (error) {
+                return responseHandler.validationError(res, "Invalid discounts format");
+            }
+        }
+
+        const baseUrl = `${req.protocol}://${req.get("host")}/uploads/`;
+
+        // Tabs (merge with existing)
+        let tabs = product.tabs || {
+            description: [],
+            certificate: [],
+            hplc: [],
+            mass: [],
+        };
+
+        if (description) {
+            tabs.description.push({ text: description });
+        }
+
+        if (req.files && req.files.certificate && req.files.certificate[0]) {
+            tabs.certificate.push({
+                url: baseUrl + req.files.certificate[0].filename,
+            });
+        }
+
+        if (req.files && req.files.hplc && req.files.hplc[0]) {
+            tabs.hplc.push({
+                url: baseUrl + req.files.hplc[0].filename,
+            });
+        }
+
+        if (req.files && req.files.massSpectrometry && req.files.massSpectrometry[0]) {
+            tabs.mass.push({
+                url: baseUrl + req.files.massSpectrometry[0].filename,
+            });
+        }
+
+        // Update all fields (only if provided)
+        product.name = name || product.name;
+        product.price = price || product.price;
+        product.size = size || product.size;
+        product.contents = contents || product.contents;
+        product.form = form || product.form;
+        product.purity = purity || product.purity;
+        product.sku = sku || product.sku;
+        product.stock = stock || product.stock;
+        product.freeShippingOn = freeShippingOn || product.freeShippingOn;
+        product.discounts = parsedDiscounts;
+        product.tabs = tabs;
+
+        // If new image uploaded, update productImage
+        if (req.files && req.files.file && req.files.file[0]) {
+            product.productImage = `${baseUrl}${req.files.file[0].filename}`;
+        }
+
+        await product.save();
+
+        return responseHandler.success(res, product, "Product updated successfully");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
     }
-
-    // Update fields
-    if (name) product.name = name;
-    if (price) product.price = price;
-    if (description) product.description = description;
-    if (stock) product.stock = stock;
-
-    await product.save();
-
-    res.json({
-      success: true,
-      message: "Product updated successfully",
-      data: product,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
-  }
 };
+
 exports.getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.find().sort({ createdAt: -1 }); // latest first
+    try {
+        await connectToDatabase();
 
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      data: products,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch products",
-      error: error.message,
-    });
-  }
+        const products = await Product.find(
+            { isDeleted: false },
+            { name: 1, productImage: 1, price: 1 }
+        );
+
+        return responseHandler.success(res, products, "Products fetched successfully");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
+    }
 };
+
+exports.getProductById = async (req, res) => {
+    try {
+        await connectToDatabase();
+
+        const { id } = req.params;
+
+        const product = await Product.findOne({ _id: id, isDeleted: false });
+        if (!product) {
+            return responseHandler.validationError(res, "Product not found");
+        }
+
+        return responseHandler.success(res, product, "Product fetched successfully");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
+    }
+};
+
 exports.deleteProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        await connectToDatabase();
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Product ID is required",
-      });
+        const { id } = req.params;
+
+        const product = await Product.findById(id);
+        if (!product || product.isDeleted) {
+            return responseHandler.validationError(res, "Product not found");
+        }
+
+        product.isDeleted = true;
+        await product.save();
+
+        return responseHandler.success(res, product, "Product deleted successfully");
+    } catch (error) {
+        console.error(error);
+        return responseHandler.error(res, error);
     }
-
-    const deletedProduct = await Product.findByIdAndDelete(id);
-    if (!deletedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-      data: {
-        deletedProduct: {
-          id: deletedProduct._id,
-          name: deletedProduct.name,
-          sku: deletedProduct.sku,
-        },
-      },
-    });
-  } catch (error) {
-    if (error.name === "CastError") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product ID format",
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete product",
-      error: error.message,
-    });
-  }
 };
+
 exports.getProductSummary = async (req, res) => {
   try {
     const products = await Product.find({}, "name price size stock discounts") // only select required fields

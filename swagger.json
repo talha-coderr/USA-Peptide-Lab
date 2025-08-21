@@ -15,7 +15,7 @@
       "post": {
         "summary": "Send Signup Link",
         "tags": [
-          "User Authentication"
+          "Authentication"
         ],
         "description": "Generates a signup token and sends a registration link to the user's email. The link allows the user to complete their registration by setting a password.",
         "parameters": [
@@ -55,7 +55,7 @@
       "post": {
         "summary": "Complete Signup",
         "tags": [
-          "User Authentication"
+          "Authentication"
         ],
         "description": "Completes the user registration by verifying the signup token, setting the password, and creating the account.",
         "parameters": [
@@ -150,6 +150,27 @@
         }
       }
     },
+    "/logout": {
+      "post": {
+        "summary": "Logout User",
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Logs out the currently authenticated user by removing the refresh token and clearing cookies.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out."
+          },
+          "400": {
+            "description": "No user is logged in."
+          },
+          "500": {
+            "description": "An error occurred during logout."
+          }
+        }
+      }
+    },
     "/accountDetails": {
       "put": {
         "summary": "Update Account Details",
@@ -217,7 +238,7 @@
         "tags": [
           "Products"
         ],
-        "description": "Creates a new product with details and an image upload.",
+        "description": "Creates a new product with details, discounts, stock, and tabbed content including optional file uploads.",
         "consumes": [
           "multipart/form-data"
         ],
@@ -267,6 +288,12 @@
             "description": "Stock Keeping Unit"
           },
           {
+            "name": "stock",
+            "in": "formData",
+            "type": "number",
+            "description": "Available stock quantity"
+          },
+          {
             "name": "freeShippingOn",
             "in": "formData",
             "type": "number",
@@ -279,17 +306,35 @@
             "description": "JSON array of discounts [{ minQuantity, maxQuantity, discountPercent }]"
           },
           {
-            "name": "tabs",
+            "name": "description",
             "in": "formData",
             "type": "string",
-            "description": "JSON array of product tabs [{ title, content, image }]"
+            "description": "Product description (added to tabs)"
           },
           {
-            "name": "productImage",
+            "name": "file",
             "in": "formData",
             "required": true,
             "type": "file",
-            "description": "Product image"
+            "description": "Main product image"
+          },
+          {
+            "name": "certificate",
+            "in": "formData",
+            "type": "file",
+            "description": "Certificate file for product tabs"
+          },
+          {
+            "name": "hplc",
+            "in": "formData",
+            "type": "file",
+            "description": "HPLC file for product tabs"
+          },
+          {
+            "name": "massSpectrometry",
+            "in": "formData",
+            "type": "file",
+            "description": "Mass Spectrometry file for product tabs"
           }
         ],
         "responses": {
@@ -297,7 +342,73 @@
             "description": "Product created successfully."
           },
           "400": {
-            "description": "Validation error, such as missing product name, price, or image."
+            "description": "Validation error, such as missing product name, price, or image, or invalid discounts format."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/getAllProducts": {
+      "get": {
+        "summary": "Get All Products",
+        "tags": [
+          "Products"
+        ],
+        "description": "Fetches all non-deleted products with their name, image, and price.",
+        "responses": {
+          "200": {
+            "description": "Products fetched successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Product name"
+                  },
+                  "productImage": {
+                    "type": "string",
+                    "description": "Product image URL"
+                  },
+                  "price": {
+                    "type": "number",
+                    "description": "Product price"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/getProductById/{id}": {
+      "get": {
+        "summary": "Get Product by ID",
+        "tags": [
+          "Products"
+        ],
+        "description": "Fetches a single product by its ID if it exists and is not deleted.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The unique identifier of the product"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product fetched successfully."
+          },
+          "400": {
+            "description": "Product not found."
           },
           "500": {
             "description": "Server error."
@@ -311,7 +422,7 @@
         "tags": [
           "Products"
         ],
-        "description": "Updates an existing product's details and optionally replaces its image.",
+        "description": "Updates an existing product by ID. Allows updating product details, discounts, image, and product tabs with optional file uploads.",
         "consumes": [
           "multipart/form-data"
         ],
@@ -321,38 +432,133 @@
             "in": "path",
             "required": true,
             "type": "string",
-            "description": "The unique ID of the product to update"
+            "description": "Product ID to update"
           },
           {
             "name": "name",
             "in": "formData",
             "type": "string",
-            "description": "Updated product name"
+            "description": "Product name"
           },
           {
             "name": "price",
             "in": "formData",
             "type": "number",
-            "description": "Updated product price"
+            "description": "Product price"
+          },
+          {
+            "name": "size",
+            "in": "formData",
+            "type": "string",
+            "description": "Product size"
+          },
+          {
+            "name": "contents",
+            "in": "formData",
+            "type": "string",
+            "description": "Product contents"
+          },
+          {
+            "name": "form",
+            "in": "formData",
+            "type": "string",
+            "description": "Product form (e.g., powder, liquid)"
+          },
+          {
+            "name": "purity",
+            "in": "formData",
+            "type": "string",
+            "description": "Product purity percentage"
+          },
+          {
+            "name": "sku",
+            "in": "formData",
+            "type": "string",
+            "description": "Stock Keeping Unit"
+          },
+          {
+            "name": "stock",
+            "in": "formData",
+            "type": "number",
+            "description": "Available stock quantity"
+          },
+          {
+            "name": "freeShippingOn",
+            "in": "formData",
+            "type": "number",
+            "description": "Free shipping threshold amount"
+          },
+          {
+            "name": "discounts",
+            "in": "formData",
+            "type": "string",
+            "description": "JSON array of discounts [{ minQuantity, maxQuantity, discountPercent }]"
           },
           {
             "name": "description",
             "in": "formData",
             "type": "string",
-            "description": "Updated product description"
+            "description": "Product description (adds to tabs)"
           },
           {
-            "name": "productImage",
+            "name": "file",
             "in": "formData",
             "type": "file",
-            "description": "New product image (optional)"
+            "description": "New main product image"
+          },
+          {
+            "name": "certificate",
+            "in": "formData",
+            "type": "file",
+            "description": "Certificate file for product tabs"
+          },
+          {
+            "name": "hplc",
+            "in": "formData",
+            "type": "file",
+            "description": "HPLC file for product tabs"
+          },
+          {
+            "name": "massSpectrometry",
+            "in": "formData",
+            "type": "file",
+            "description": "Mass Spectrometry file for product tabs"
           }
         ],
         "responses": {
           "200": {
             "description": "Product updated successfully."
           },
-          "404": {
+          "400": {
+            "description": "Validation error, such as product not found or invalid discounts format."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/deleteProduct/{id}": {
+      "delete": {
+        "summary": "Delete Product",
+        "tags": [
+          "Products"
+        ],
+        "description": "Marks a product as deleted by setting the isDeleted flag to true.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the product to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully."
+          },
+          "400": {
             "description": "Product not found."
           },
           "500": {
