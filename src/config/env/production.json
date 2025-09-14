@@ -5,7 +5,7 @@
         "host": "cluster0.1khtv50.mongodb.net",
         "username": "talha_coder",
         "password": "0maFDWH83IiHhjCn",
-        "dbName": "peptide_dev_db",
+        "dbName": "usaPeptide_prod_db",
         "options": {
             "retryWrites": true,
             "w": "majority",
