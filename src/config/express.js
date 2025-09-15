@@ -26,7 +26,7 @@ app.use("/uploads", express.static(uploadDir));
 app.use(
   cors({
     // origin: 'http://localhost:3000',
-    origin: ["http://localhost:3000", "https://usa-peptides.vercel.app", "http://usapeptide-env.eba-gwmh4bqi.us-east-1.elasticbeanstalk.com"],
+    origin: ["http://localhost:3000", "http://localhost:3000", "https://usa-peptides.vercel.app", "http://usapeptide-env.eba-gwmh4bqi.us-east-1.elasticbeanstalk.com"],
     credentials: true,
   })
 );
@@ -61,14 +61,6 @@ app.use(passport.session());
 
 // Setup Swagger API docs route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.post("/testmsg", async (req, res) => {
-  try {
-    let result = await sendWhatsAppMessage("+923048757815", "hello");
-    res.send({ result: result });
-  } catch (error) {
-    console.log(error);
-  }
-});
 
 app.use(bodyParser.json());
 const imgDir = require("path").join(`${__root}`, "/public/files");
