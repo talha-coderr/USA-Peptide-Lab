@@ -26,7 +26,7 @@ app.use("/uploads", express.static(uploadDir));
 app.use(
   cors({
     // origin: 'http://localhost:3000',
-    origin: ["http://localhost:3000", "https://usa-peptides.vercel.app"],
+    origin: ["http://localhost:3000", "https://usa-peptides.vercel.app", "http://usapeptide-env.eba-gwmh4bqi.us-east-1.elasticbeanstalk.com"],
     credentials: true,
   })
 );

@@ -12,6 +12,7 @@ module.exports = (router, controller) => {
     controller.createProduct
   );
   router.get("/productList", controller.getAllProducts);
+  router.get("/getProductById/:id", controller.getProductById);
   router.get("/productSummary", controller.getProductSummary);
 
   router.delete("/deleteProduct/:id", controller.deleteProduct);
