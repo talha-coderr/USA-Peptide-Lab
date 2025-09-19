@@ -350,7 +350,7 @@
         }
       }
     },
-    "/getAllProducts": {
+    "/productList": {
       "get": {
         "summary": "Get All Products",
         "tags": [
