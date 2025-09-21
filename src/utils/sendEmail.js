@@ -28,5 +28,5 @@ const sendEmail = async ({ to, subject, text, html, attachments }) => {
 };
 
 // Export the sendEmail function for use in other files
-// export default sendEmail;
-module.exports = { sendEmail };
+module.exports = sendEmail;
+// module.exports = { sendEmail };
