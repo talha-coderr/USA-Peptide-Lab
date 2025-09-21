@@ -2,8 +2,10 @@
   "name": "usa-peptide-lab",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "dev": "npx nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "TalhaCoder",
@@ -15,6 +17,7 @@
     "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
+    "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

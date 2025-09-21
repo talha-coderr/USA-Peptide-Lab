@@ -37,7 +37,7 @@ const verifyToken = async (refreshToken) => {
     return jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 }
 const tokenPayload = async (user) => {
-    console.log("Token Payload User===>", user)
+    // console.log("Token Payload User===>", user)
     return {
         id:user?._id,
         email:user?.email,

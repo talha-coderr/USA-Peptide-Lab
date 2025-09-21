@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:5000",
+  "host": "usapeptide-env.eba-gwmh4bqi.us-east-1.elasticbeanstalk.com",
   "basePath": "/api/v1",
   "schemes": [
     "http"
@@ -350,7 +350,7 @@
         }
       }
     },
-    "/getAllProducts": {
+    "/productList": {
       "get": {
         "summary": "Get All Products",
         "tags": [

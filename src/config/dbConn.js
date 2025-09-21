@@ -1,16 +1,15 @@
 const config = require("./config");
 // console.log("MongoDB")
 const mongoose =  require('mongoose');
+
 function getDatabaseUrl() {
-  const { driver, username, password, host, port, dbName, authSource } = config.db_config;
-  
-  // Build the connection string conditionally based on username and password
-  const authPart = username && password ? `${username}:${password}@` : '';
-  
-  return (
-    `${driver}://${authPart}${host}:${port}/${dbName}?authSource=${authSource}`
-  );
+  const { driver, username, password, host, dbName, options } = config.db_config;
+
+  const query = new URLSearchParams(options).toString();
+  return `${driver}://${username}:${password}@${host}/${dbName}?${query}`;
 }
+
+
 const uri = getDatabaseUrl();
 
 let isConnected = false;

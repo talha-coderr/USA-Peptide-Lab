@@ -1,5 +1,4 @@
 const sendEmail = require("./sendEmail");
-
 const sendSignUpLinkEmail = async (email, signupLink) => {
   const subject = "Complete Your Signup";
   const html = `
