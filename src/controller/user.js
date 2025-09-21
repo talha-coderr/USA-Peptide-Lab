@@ -55,7 +55,7 @@ exports.sendSignupLink = async (req, res) => {
     });
 
     // Signup link
-    const signupLink = `http://localhost:3000/user/my-accounts/setup-password${token}/${email}`;
+    const signupLink = `http://localhost:3000/user/my-accounts/setup-password/${token}/${email}`;
 
     await sendSignUpLinkEmail(email, signupLink);
 
