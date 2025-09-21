@@ -55,7 +55,7 @@ exports.sendSignupLink = async (req, res) => {
     });
 
     // Signup link
-    const signupLink = `https://usa-peptides.vercel.app/complete-signup${token}/${email}`;
+    const signupLink = `http://localhost:3000/user/my-accounts/setup-password${token}/${email}`;
 
     await sendSignUpLinkEmail(email, signupLink);
 
@@ -250,34 +250,6 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
-// ===================================
-// exports.login = async (req, res) => {
-//     try {
-//         await connectToDatabase();
-//         const { email, password } = req.body;
-
-//         // 1. Check user
-//         const user = await User.findOne({ email: email.toLowerCase(), isDeleted: false });
-//         if (!user) return responseHandler.validationError(res, "Invalid Email");
-//         if (!user.isActive) return responseHandler.validationError(res, "Account is not active");
-
-//         // 2. Check password
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         if (!isMatch) return responseHandler.validationError(res, "Your password is incorrect");
-
-//         // 3. Token payload
-//         const payload = await tokenPayload(user);
-
-//         // 4. Generate tokens & set cookies
-//         const { accessToken, refreshToken } = await generateTokens(payload, res, user);
-
-//         return responseHandler.success(res, { user, accessToken, refreshToken }, "Logged in successfully");
-//     } catch (error) {
-//         console.error(error);
-//         return responseHandler.error(res, error);
-//     }
-// };
-
 exports.login = async (req, res) => {
   try {
     await connectToDatabase();
@@ -292,22 +264,15 @@ exports.login = async (req, res) => {
     if (!user.isActive)
       return responseHandler.validationError(res, "Account is not active");
 
-    // 2. Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return responseHandler.validationError(res, "Your password is incorrect");
-
-    // 3. Token payload
     const payload = await tokenPayload(user);
-
-    // 4. Generate tokens & set cookies
     const { accessToken, refreshToken } = await generateTokens(
       payload,
       res,
       user
     );
-
-    // 5. Send merged response
     return responseHandler.success(
       res,
       {
@@ -326,11 +291,9 @@ exports.getAllUsers = async (req, res) => {
   try {
     await connectToDatabase();
 
-    // Fetch all non-deleted users
     const users = await User.find({ isDeleted: false }).select(
       "-password -__v"
     );
-    // excludes password & version key
 
     return responseHandler.success(res, users, "Users fetched successfully");
   } catch (error) {

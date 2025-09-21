@@ -1,8 +1,8 @@
-const sendEmail = require('./sendEmail');
+const sendEmail = require("./sendEmail");
 
 const sendSignUpLinkEmail = async (email, signupLink) => {
-    const subject = "Complete Your Signup";
-    const html = `
+  const subject = "Complete Your Signup";
+  const html = `
         <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 30px;">
             <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                 <h2 style="color: #333333;">Welcome!</h2>
@@ -16,10 +16,9 @@ const sendSignUpLinkEmail = async (email, signupLink) => {
             </div>
         </div>
     `;
-    await sendEmail({ to: email, subject, html });
+  await sendEmail({ to: email, subject, html });
 };
 
-
 module.exports = {
-    sendSignUpLinkEmail,
+  sendSignUpLinkEmail,
 };
