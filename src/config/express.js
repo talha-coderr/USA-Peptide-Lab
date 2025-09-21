@@ -16,7 +16,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../views"));
 
 app.get("/", (req, res) => {
-  res.send("API is running");
+  res.send("Backend is Running");
 });
 
 // Serve static files like CSS, images, etc.
