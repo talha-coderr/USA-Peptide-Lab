@@ -27,6 +27,7 @@ app.use(
   cors({
     // origin: 'http://localhost:3000',
     origin: ["http://localhost:3000", "https://usa-peptides.vercel.app", "http://usapeptide-env.eba-gwmh4bqi.us-east-1.elasticbeanstalk.com"],
+    // origin: true,
     credentials: true,
   })
 );
@@ -47,11 +48,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // secure: false, // Must be true in production (HTTPS required)
-      secure: true, // Must be true in production (HTTPS required)
-      sameSite: "None", // Explicitly set SameSite=None
-      httpOnly: true, // Protects from XSS attacks
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: false,
+      sameSite: "None",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
