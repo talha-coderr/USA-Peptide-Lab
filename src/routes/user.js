@@ -18,9 +18,25 @@ module.exports = (router, controller) => {
   );
   router.get(
     "/getAllUsers",
-    //  isAdmin,
+     isAdmin,
     controller.getAllUsers
   );
+  router.get(
+    "/getMe",
+    passport.authenticate("jwt", { session: false }),
+    controller.getLoggedInUser
+  );
+  router.put(
+  "/updateUserProfile",
+  passport.authenticate("jwt", { session: false }),
+  controller.updateUserProfile
+);
+  router.put(
+  "/updateUserAddress",
+  passport.authenticate("jwt", { session: false }),
+  controller.updateUserAddress
+);
+
   // router.put('/updateUser/:id', isAdmin, controller.updateUser);
   // router.delete('/deleteUser/:id', isAdmin, controller.deleteUser);
   // router.get('/getUserById/:id', controller.getUserById);

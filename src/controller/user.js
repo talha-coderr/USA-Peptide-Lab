@@ -301,6 +301,109 @@ exports.getAllUsers = async (req, res) => {
     return responseHandler.error(res, error);
   }
 };
+exports.getLoggedInUser = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const userId = req.user.id; // assuming `req.user` is set by auth middleware
+
+    const user = await User.findOne({ _id: userId, isDeleted: false });
+    if (!user) {
+      return responseHandler.error(res, "User not found", 404);
+    }
+
+    return responseHandler.success(res, user, "User data fetched successfully");
+  } catch (error) {
+    console.error(error);
+    return responseHandler.error(res, error);
+  }
+};
+exports.updateUserProfile = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const userId = req.user.id;
+    const { firstName, lastName, username, email, password } = req.body;
+
+    // Prepare update object
+    const updateFields = {};
+    if (firstName) updateFields.firstName = firstName;
+    if (lastName) updateFields.lastName = lastName;
+    if (username) updateFields.username = username;
+    if (email) updateFields.email = email;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, isDeleted: false },
+      { $set: updateFields },
+      { new: true }
+    ).select("-password -__v");
+
+    if (!updatedUser) {
+      return responseHandler.error(res, "User not found", 404);
+    }
+
+    return responseHandler.success(res, updatedUser, "User details updated successfully");
+  } catch (error) {
+    console.error(error);
+    return responseHandler.error(res, error);
+  }
+};
+
+exports.updateUserAddress = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const userId = req.user.id;
+    const { flag, companyName, address1, address2, city, state, zipCode, phoneNumber } = req.body;
+
+    if (!flag || !["billing", "shipping"].includes(flag)) {
+      return responseHandler.error(res, "Invalid flag. Must be 'billing' or 'shipping'", 400);
+    }
+
+    // Build the address object dynamically
+    const addressData = {
+      companyName,
+      address1,
+      address2,
+      city,
+      state,
+      zipCode,
+    };
+
+    // Only allow phoneNumber for billing
+    if (flag === "billing" && phoneNumber) {
+      addressData.phoneNumber = phoneNumber;
+    }
+
+    // Prepare dynamic update path
+    const updateFields = {};
+    updateFields[`addresses.${flag}`] = addressData;
+
+    // Find and update user
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, isDeleted: false },
+      { $set: updateFields },
+      { new: true }
+    ).select("-password -__v");
+
+    if (!updatedUser) {
+      return responseHandler.error(res, "User not found", 404);
+    }
+
+    return responseHandler.success(
+      res,
+      updatedUser.addresses[flag],
+      `${flag.charAt(0).toUpperCase() + flag.slice(1)} address updated successfully`
+    );
+  } catch (error) {
+    console.error(error);
+    return responseHandler.error(res, error);
+  }
+};
 
 exports.logout = async (req, res) => {
   try {

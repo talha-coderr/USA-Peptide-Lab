@@ -2,16 +2,27 @@ const mongoose = require("mongoose");
 const { isEmail } = require("validator");
 const Schema = mongoose.Schema;
 
+// Address Subschema
+const addressSchema = new Schema(
+  {
+    companyName: { type: String },
+    address1: { type: String },
+    address2: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zipCode: { type: String },
+    phoneNumber: { type: String },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema(
   {
-    fullName: {
-      type: String,
-      // required: true,
-    },
+    firstName: { type: String },
+    lastName: { type: String },
+    fullName: { type: String },
     username: {
       type: String,
-      // required: true,
-      unique: true,
     },
     email: {
       type: String,
@@ -21,7 +32,6 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      // required: true,
       default: "User",
     },
     password: {
@@ -33,12 +43,22 @@ const userSchema = new Schema(
       required: true,
       default: false,
     },
-    refreshToken: {
-      type: String,
-    },
+    refreshToken: { type: String },
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+
+    // New addresses field
+    addresses: {
+      billing: {
+        type: addressSchema,
+        default: {},
+      },
+      shipping: {
+        type: addressSchema,
+        default: {},
+      },
     },
   },
   { timestamps: true }
@@ -46,4 +66,3 @@ const userSchema = new Schema(
 
 module.exports = mongoose.model("User", userSchema);
 exports.userSchema = userSchema;
-console.info("[UserSchema] created successfully");
